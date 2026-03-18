@@ -8,9 +8,13 @@ function showReport() {
         return;
     }
 
+    // Convert 2026-03-16 → 20260316
     const formattedDate = date.replace(/-/g, "");
 
-    const pdfPath = `pdf/${formattedDate}.pdf`;
+    // Build your exact filename
+    const fileName = `${formattedDate} kafanshan Daily Equipment Breakdown Report.pdf`;
+
+    const pdfPath = `pdf/${fileName}`;
 
     fetch(pdfPath)
         .then(response => {
