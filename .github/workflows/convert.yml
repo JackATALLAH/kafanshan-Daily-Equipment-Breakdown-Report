@@ -1,3 +1,6 @@
+permissions:
+  contents: write
+  
 name: Convert Excel to PDF
 
 on:
@@ -27,5 +30,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add pdf/
-          git commit -m "Auto convert Excel to PDF" || echo "No changes"
-          git push
+          git diff --cached --quiet || git commit -m "Auto convert Excel to PDF"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
