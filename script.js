@@ -1,22 +1,40 @@
-function showReport() {
-    const dateInput = document.getElementById("reportDate");
-    const pdfViewer = document.getElementById("pdfViewer");
-    dateInput.addEventListener("input", () => {
-    // Format date as YYYYMMDD
-    const date = new Date(dateInput.value);
-    if (!dateInput.value) {
+// 1. Get your elements once at the top of the script
+const dateInput = document.getElementById("reportDate");
+const pdfViewer = document.getElementById("pdfViewer");
+const status = document.getElementById("status"); // Optional: for error messages
+
+// 2. Add the listener directly to the input
+dateInput.addEventListener("input", () => {
+    const rawDate = dateInput.value;
+
+    // If the input is cleared, clear the viewer
+    if (!rawDate) {
         pdfViewer.src = "";
+        if (status) status.innerText = "Please select a date.";
         return;
     }
 
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const formattedDate = `${yyyy}${mm}${dd}`;
+    // Convert "2026-03-18" directly to "20260318" (Safer than using new Date())
+    const formattedDate = rawDate.replace(/-/g, "");
 
-    // Construct PDF path
-    const pdfPath = `pdf/${formattedDate} kafanshan Daily Equipment Breakdown Report.pdf`;
+    // Construct PDF path (Matches your naming convention)
+    const fileName = `${formattedDate} kafanshan Daily Equipment Breakdown Report.pdf`;
+    const pdfPath = `pdf/${fileName}`;
 
-    // Load PDF in iframe immediately
+    // Update the viewer
     pdfViewer.src = pdfPath;
+
+    // Optional: Check if the file actually exists
+    fetch(pdfPath, { method: 'HEAD' })
+        .then(res => {
+            if (res.ok) {
+                if (status) status.innerText = "";
+            } else {
+                if (status) status.innerText = "Report not found for this date.";
+                // Optionally clear viewer if not found: pdfViewer.src = "";
+            }
+        })
+        .catch(() => {
+            if (status) status.innerText = "Error loading report.";
+        });
 });
