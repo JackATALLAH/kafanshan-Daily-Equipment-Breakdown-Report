@@ -19,11 +19,29 @@ jobs:
       - name: Install LibreOffice
         run: sudo apt-get update && sudo apt-get install -y libreoffice
 
-      - name: Convert Excel to PDF (advanced)
+      - name: Convert Excel to PDF (force fit to width)
         run: |
+          mkdir -p lo_profile
+      
+          # Create LibreOffice config to force scaling
+          cat > lo_profile/registrymodifications.xcu << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <oor:items xmlns:oor="http://openoffice.org/2001/registry">
+            <item oor:path="/org.openoffice.Office.Calc/Print">
+              <prop oor:name="ScaleToPagesX" oor:op="fuse">
+                <value>1</value>
+              </prop>
+              <prop oor:name="ScaleToPagesY" oor:op="fuse">
+                <value>0</value>
+              </prop>
+            </item>
+          </oor:items>
+          EOF
+      
           find excel -name "*.xlsx" -print0 | while IFS= read -r -d '' file; do
             libreoffice --headless \
-              --convert-to "pdf:calc_pdf_Export:{\"ReduceImageResolution\":false}" \
+              -env:UserInstallation=file://$(pwd)/lo_profile \
+              --convert-to pdf \
               --outdir pdf \
               "$file"
           done
