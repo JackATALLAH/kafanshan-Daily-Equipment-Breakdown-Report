@@ -1,11 +1,12 @@
-body {
-    font-family: Arial;
-    margin: 40px;
+.calendar-container {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the calendar */
 }
 
-iframe {
-    width: 100%;
-    height: 700px;
-    margin-top: 20px;
-    border: 1px solid #ccc;
+/* Optional: Make the calendar look a bit more modern */
+.flatpickr-calendar {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
 }
