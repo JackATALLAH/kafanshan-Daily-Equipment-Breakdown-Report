@@ -25,29 +25,16 @@ jobs:
 
       - name: Convert Excel to PDF (Force Fit to Width)
         run: |
-          mkdir -p lo_profile
           mkdir -p pdf
           
-          # Create the registry modification to force "Fit all columns on one page"
-          # We use a more robust path for the profile
-          cat > lo_profile/registrymodifications.xcu << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <oor:items xmlns:oor="http://openoffice.org/2001/registry">
-            <item oor:path="/org.openoffice.Office.Calc/Print">
-              <prop oor:name="ScaleToPagesX" oor:op="fuse"><value>1</value></prop>
-              <prop oor:name="ScaleToPagesY" oor:op="fuse"><value>0</value></prop>
-            </item>
-          </oor:items>
-          EOF
-          
-          # Convert files. We use --outdir pdf
-          # The -env:UserInstallation must be an absolute path
           for file in excel/*.xlsx; do
             [ -e "$file" ] || continue
             echo "Converting: $file"
+            
+            # This specific command forces 'SinglePageSheets' 
+            # It makes all columns fit by expanding the virtual page size
             libreoffice --headless \
-              "-env:UserInstallation=file://$(pwd)/lo_profile" \
-              --convert-to pdf \
+              --convert-to 'pdf:calc_pdf_Export:{"SinglePageSheets":{"type":"boolean","value":"true"}}' \
               --outdir pdf \
               "$file"
           done
