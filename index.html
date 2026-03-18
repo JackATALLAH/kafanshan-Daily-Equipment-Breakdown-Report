@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Daily Reports</title>
+  <title>Daily Reports Viewer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Select a date</h2>
+<h1>Daily Reports</h1>
 
+<label>Select a date:</label>
 <input type="date" id="datePicker">
 
 <button onclick="showReport()">Show Report</button>
 
-<hr>
+<p id="status"></p>
 
-<iframe id="viewer" width="100%" height="600px"></iframe>
+<iframe id="viewer"></iframe>
 
 <script src="script.js"></script>
 
