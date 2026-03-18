@@ -3,17 +3,21 @@
 <head>
   <title>Daily Reports Viewer</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
 <h1>Daily Reports</h1>
 
-<label>Select a date:</label>
+<div class="calendar-container">
+  <label>Select a date:</label>
+  <input type="text" id="reportDate" placeholder="Select Date..">
+</div>
 
-<input type="date" id="reportDate">
 <br>
 <iframe id="pdfViewer" style="width:100%; height:600px;"></iframe>
   
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="script.js"></script>
 
 </body>
