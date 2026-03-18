@@ -1,6 +1,3 @@
-permissions:
-  contents: write
-  
 name: Convert Excel to PDF
 
 on:
@@ -8,65 +5,65 @@ on:
     paths:
       - 'excel/*.xlsx'
 
+permissions:
+  contents: write
+
 jobs:
   convert:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to v4 for better performance
+        with:
+          fetch-depth: 0 # Ensures we have history to push back
 
       - name: Install LibreOffice
-        run: sudo apt-get update && sudo apt-get install -y libreoffice
-
-      - name: Convert Excel to PDF (force fit to width)
         run: |
-          # 1️⃣ Ensure folders exist
+          sudo apt-get update
+          sudo apt-get install -y libreoffice-calc libreoffice-java-common
+
+      - name: Convert Excel to PDF (Force Fit to Width)
+        run: |
           mkdir -p lo_profile
           mkdir -p pdf
-      
-          # 2️⃣ Create LibreOffice config to force scaling
+          
+          # Create the registry modification to force "Fit all columns on one page"
+          # We use a more robust path for the profile
           cat > lo_profile/registrymodifications.xcu << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <oor:items xmlns:oor="http://openoffice.org/2001/registry">
             <item oor:path="/org.openoffice.Office.Calc/Print">
-              <prop oor:name="ScaleToPagesX" oor:op="fuse">
-                <value>1</value>
-              </prop>
-              <prop oor:name="ScaleToPagesY" oor:op="fuse">
-                <value>0</value>
-              </prop>
+              <prop oor:name="ScaleToPagesX" oor:op="fuse"><value>1</value></prop>
+              <prop oor:name="ScaleToPagesY" oor:op="fuse"><value>0</value></prop>
             </item>
           </oor:items>
           EOF
-      
-          # 3️⃣ Convert all Excel files safely (handles spaces)
-          find excel -name "*.xlsx" -print0 | while IFS= read -r -d '' file; do
+          
+          # Convert files. We use --outdir pdf
+          # The -env:UserInstallation must be an absolute path
+          for file in excel/*.xlsx; do
+            [ -e "$file" ] || continue
             echo "Converting: $file"
             libreoffice --headless \
-              -env:UserInstallation=file://$(pwd)/lo_profile \
+              "-env:UserInstallation=file://$(pwd)/lo_profile" \
               --convert-to pdf \
               --outdir pdf \
               "$file"
           done
-      
-          # 4️⃣ Debug: list PDFs
-          echo "PDFs created:"
-          ls -lh pdf
 
-      - name: Commit PDFs
+      - name: Commit and Push PDFs
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-      
-          git add pdf/
-          git diff --cached --quiet || git commit -m "Auto convert Excel to PDF"
-      
-          # Fetch latest changes from remote
-          git fetch origin main
-      
-          # Merge remote changes
-          git reset --soft origin/main
-      
-          # Push with token authentication
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add pdf/*.pdf
+          
+          # Only commit if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-convert Excel to PDF [skip ci]"
+            # Standard push works because checkout@v4 handles the token
+            git push origin HEAD:${{ github.ref }}
+          fi
