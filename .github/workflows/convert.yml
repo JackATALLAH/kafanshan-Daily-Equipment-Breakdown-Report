@@ -1,0 +1,31 @@
+name: Convert Excel to PDF
+
+on:
+  push:
+    paths:
+      - 'excel/*.xlsx'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install LibreOffice
+        run: sudo apt-get update && sudo apt-get install -y libreoffice
+
+      - name: Convert Excel to PDF
+        run: |
+          for file in excel/*.xlsx; do
+            libreoffice --headless --convert-to pdf "$file" --outdir pdf/
+          done
+
+      - name: Commit PDFs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add pdf/
+          git commit -m "Auto convert Excel to PDF" || echo "No changes"
+          git push
