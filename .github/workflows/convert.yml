@@ -21,9 +21,11 @@ jobs:
 
       - name: Convert Excel to PDF (force fit to width)
         run: |
+          # 1️⃣ Ensure folders exist
           mkdir -p lo_profile
+          mkdir -p pdf
       
-          # Create LibreOffice config to force scaling
+          # 2️⃣ Create LibreOffice config to force scaling
           cat > lo_profile/registrymodifications.xcu << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <oor:items xmlns:oor="http://openoffice.org/2001/registry">
@@ -38,13 +40,19 @@ jobs:
           </oor:items>
           EOF
       
+          # 3️⃣ Convert all Excel files safely (handles spaces)
           find excel -name "*.xlsx" -print0 | while IFS= read -r -d '' file; do
+            echo "Converting: $file"
             libreoffice --headless \
               -env:UserInstallation=file://$(pwd)/lo_profile \
               --convert-to pdf \
               --outdir pdf \
               "$file"
           done
+      
+          # 4️⃣ Debug: list PDFs
+          echo "PDFs created:"
+          ls -lh pdf
 
       - name: Commit PDFs
         run: |
